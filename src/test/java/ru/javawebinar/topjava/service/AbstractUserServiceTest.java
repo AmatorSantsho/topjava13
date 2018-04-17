@@ -3,7 +3,6 @@ package ru.javawebinar.topjava.service;
 import org.junit.Assume;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
@@ -21,7 +20,6 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Autowired
     protected UserService service;
 
-    @Autowired private Environment environment;
 
     @Test
     public void create() throws Exception {
@@ -79,15 +77,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
         assertMatch(all, ADMIN, USER);
     }
 
-    public  boolean checkProfile() throws Exception {
-        String[] profiles = environment.getActiveProfiles();
-        boolean isActive = false;
-        for (String p : profiles) {
-            if (p.equals("jpa") || p.equals("datajpa"))
-                isActive = true;
-        }
-        return isActive;
-    }
+
     @Test
     public void testValidation() throws Exception {
         Assume.assumeTrue(checkProfile());
