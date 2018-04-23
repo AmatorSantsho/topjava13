@@ -1,78 +1,71 @@
-package ru.javawebinar.topjava.web.user;
+package ru.javawebinar.topjava.web.meal;
 
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import ru.javawebinar.topjava.MealTestData;
 import ru.javawebinar.topjava.TestUtil;
-import ru.javawebinar.topjava.model.Role;
-import ru.javawebinar.topjava.model.User;
+import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.*;
 
-public class AdminRestControllerTest extends AbstractControllerTest {
 
-    private static final String REST_URL = AdminRestController.REST_URL + '/';
+/**
+ * Created by 123 on 23.04.2018.
+ */
+public class MealRestControllerTest extends AbstractControllerTest {
+    private static final String REST_URL = MealRestController.REST_URL + '/';
 
     @Test
     public void testGet() throws Exception {
-        mockMvc.perform(get(REST_URL + ADMIN_ID))
+        mockMvc.perform(get(REST_URL + MEAL1_ID))
                 .andExpect(status().isOk())
                 .andDo(print())
-                // https://jira.spring.io/browse/SPR-14472
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(ADMIN));
-    }
-
-    @Test
-    public void testGetByEmail() throws Exception {
-        mockMvc.perform(get(REST_URL + "by?email=" + USER.getEmail()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(USER));
+                .andExpect(content().json(JsonUtil.writeValue(MEAL1)));
     }
 
     @Test
     public void testDelete() throws Exception {
-        mockMvc.perform(delete(REST_URL + USER_ID))
+        mockMvc.perform(delete(REST_URL + MEAL1_ID))
                 .andDo(print())
                 .andExpect(status().isNoContent());
-        assertMatch(userService.getAll(), ADMIN);
+        assertMatch(mealService.getAll(USER_ID), MEAL6, MEAL5, MEAL4, MEAL3, MEAL2);
     }
 
     @Test
     public void testUpdate() throws Exception {
-        User updated = new User(USER);
-        updated.setName("UpdatedName");
-        updated.setRoles(Collections.singletonList(Role.ROLE_ADMIN));
-        mockMvc.perform(put(REST_URL + USER_ID)
+        Meal updated = MealTestData.getUpdated();
+        mockMvc.perform(put(REST_URL + MEAL1_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(updated)))
                 .andExpect(status().isOk());
 
-        assertMatch(userService.get(USER_ID), updated);
+        assertMatch(mealService.get(MEAL1_ID, USER_ID), updated);
     }
 
     @Test
     public void testCreate() throws Exception {
-        User expected = new User(null, "New", "new@gmail.com", "newPass", Role.ROLE_USER, Role.ROLE_ADMIN);
+        Meal expected = MealTestData.getCreated();
         ResultActions action = mockMvc.perform(post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(expected)))
                 .andExpect(status().isCreated());
 
-        User returned = TestUtil.readFromJson(action, User.class);
+        Meal returned = TestUtil.readFromJson(action, Meal.class);
         expected.setId(returned.getId());
 
         assertMatch(returned, expected);
-        assertMatch(userService.getAll(), ADMIN, expected, USER);
+        assertMatch(mealService.getAll(USER_ID), expected, MEAL6, MEAL5, MEAL4, MEAL3, MEAL2, MEAL1);
     }
 
     @Test
@@ -80,6 +73,15 @@ public class AdminRestControllerTest extends AbstractControllerTest {
         TestUtil.print(mockMvc.perform(get(REST_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJson(ADMIN, USER)));
+                .andExpect(content().json(JsonUtil.writeValue(MEALS))));
+    }
+
+    @Test
+    public void testFilter() throws Exception {
+        mockMvc.perform(get(REST_URL + "filter/?startDate=2015-05-30&endDate=2015-05-30&startTime=18:00&endTime=21:00"))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(JsonUtil.writeValue(Arrays.asList(MEAL3))));
     }
 }
