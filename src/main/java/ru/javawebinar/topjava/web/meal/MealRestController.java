@@ -3,10 +3,12 @@ package ru.javawebinar.topjava.web.meal;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealWithExceed;
+import ru.javawebinar.topjava.util.DateTimeUtil;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -54,16 +56,16 @@ public class MealRestController extends AbstractMealController {
     }
 
     @GetMapping(value = "/filter", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<MealWithExceed> getBetween(@RequestParam ("startDate") String startDate,
-                                           @RequestParam ("endDate")String  endDate,
-                                           @RequestParam("startTime") String  startTime,
-                                           @RequestParam ("endTime")String  endTime) {
+    public List<MealWithExceed> getBetween(@RequestParam (value = "startDate", required = false) String startDate,
+                                           @RequestParam (value = "endDate", required = false) String  endDate,
+                                           @RequestParam(value = "startTime", required = false) String  startTime,
+                                           @RequestParam (value = "endTime", required = false)String  endTime) {
 
 
-        LocalDate startD= LocalDate.parse(startDate);
-        LocalDate endD= LocalDate.parse(endDate);
-        LocalTime startT=LocalTime.parse(startTime);
-        LocalTime endT=LocalTime.parse(endTime);
+        LocalDate startD= StringUtils.isEmpty(startDate)? DateTimeUtil.MIN_DATE:LocalDate.parse(startDate);
+        LocalDate endD= StringUtils.isEmpty(endDate)? DateTimeUtil.MAX_DATE:LocalDate.parse(endDate);
+        LocalTime startT= StringUtils.isEmpty(startTime)? LocalTime.MIN:LocalTime.parse(startTime);
+        LocalTime endT=StringUtils.isEmpty(endTime)? LocalTime.MAX:LocalTime.parse(endTime);
 
         return super.getBetween(startD, startT, endD, endT);
     }
