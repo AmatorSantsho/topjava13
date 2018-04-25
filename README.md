@@ -10,7 +10,9 @@ Curl Command for Rest Testing
 2.GetMealById:  curl "http://localhost:8080/topjava/rest/meals/100004"
 3.DeleteMeal:   curl -X DELETE "http://localhost:8080/topjava/rest/meals/100002"
 4.UpdateMeal:   curl -X PUT -H "Content-Type: application/json" -d '{"dateTime":"2018-04-24T10:00:00","description":"NewEat","calories":600}' "http://localhost:8080/topjava/rest/meals/100003"
+                curl -X PUT -H "Content-Type: application/json" -d "@C:/curl-7.59.0-win64-mingw/bin/mealToUpdate.json" "http://localhost:8080/topjava/rest/meals/100003"
 5.CreateMeal:   curl -X POST -H "Content-Type: application/json" -d '{"dateTime":"2018-04-25T10:00:00","description":"New","calories":500}' "http://localhost:8080/topjava/rest/meals/"
+                curl -X POST -H "Content-Type: application/json" -d "@C:/curl-7.59.0-win64-mingw/bin/mealToCreate.json" "http://localhost:8080/topjava/rest/meals/"
 6.FilterMeal:   curl "http://localhost:8080/topjava/rest/meals/filter?startDate=2015-05-30&endDate=2015-05-30&startTime=18:00&endTime=21:00"
 
 7.GetAllUsers:  curl "http://localhost:8080/topjava/rest/admin/users"
