@@ -40,3 +40,26 @@ $(function () {
     });
     makeEditable();
 });
+
+function changeStatus(id) {
+
+    var chbox;
+    chbox = document.getElementById('checking');
+    var enabled;
+    if (chbox.checked) {
+        enabled = true;
+    }
+    else {
+        enabled = false;
+    }
+    $.ajax({
+        type: "POST",
+        url: ajaxUrl + id,
+        data: "enabled=" + enabled,
+    }).done(function () {
+        $("#"+id).toggleClass("disabled");
+        //successNoty(enabled ? "common.enabled" : "common.disabled");
+    });
+
+}
+

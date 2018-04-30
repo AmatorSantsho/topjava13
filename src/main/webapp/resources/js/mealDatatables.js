@@ -34,3 +34,22 @@ $(function () {
     });
    makeEditable();
 });
+
+
+function filter() {
+    var form = $("#filterForm");
+    $.ajax({
+        type: "GET",
+        url: "ajax/meals/filter",
+        data: form.serialize(),
+        success: function (data) {
+            datatableApi.clear().rows.add(data).draw();
+            successNoty("filtered")
+
+        }
+    });
+}
+
+function reset(){
+    $("#filterForm").find(":input").val("");
+}
