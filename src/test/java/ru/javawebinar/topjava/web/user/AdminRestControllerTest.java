@@ -112,6 +112,19 @@ public class AdminRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testCreateWithInvalidDate() throws Exception {
+        User created = new User();
+
+        ResultActions action = mockMvc.perform(post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(created))
+                .with(userHttpBasic(ADMIN)))
+                .andExpect(status().isUnprocessableEntity())
+                .andDo(print());
+
+
+    }
+        @Test
     public void testGetAll() throws Exception {
         TestUtil.print(mockMvc.perform(get(REST_URL)
                 .with(userHttpBasic(ADMIN)))

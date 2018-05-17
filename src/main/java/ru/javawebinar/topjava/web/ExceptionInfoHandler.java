@@ -7,6 +7,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +22,8 @@ import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.StringJoiner;
 
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
 
@@ -41,9 +46,9 @@ public class ExceptionInfoHandler {
     }
 
     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
-    @ExceptionHandler({IllegalRequestDataException.class, MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
-    public ErrorInfo illegalRequestDataError(HttpServletRequest req, Exception e) {
-        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR);
+    @ExceptionHandler({IllegalRequestDataException.class, MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class, BindException.class})
+    public ErrorInfo illegalRequestDataError(HttpServletRequest req, Exception e,BindingResult bindingResult) {
+        return myGetErrorInfo(req, e, false, VALIDATION_ERROR, bindingResult);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -51,6 +56,14 @@ public class ExceptionInfoHandler {
     public ErrorInfo handleError(HttpServletRequest req, Exception e) {
         return logAndGetErrorInfo(req, e, true, APP_ERROR);
     }
+
+    @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ErrorInfo illegalMethodArgument(HttpServletRequest req, MethodArgumentNotValidException error) {
+
+        return myGetErrorInfo(req, error, false, VALIDATION_ERROR,error.getBindingResult());
+    }
+
 
     private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
         Throwable rootCause = ValidationUtil.getRootCause(e);
@@ -60,5 +73,20 @@ public class ExceptionInfoHandler {
             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
         }
         return new ErrorInfo(req.getRequestURL(), errorType, rootCause.toString());
+    }
+
+    private  static ErrorInfo myGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType, BindingResult result){
+
+        StringJoiner joiner = new StringJoiner("<br>");
+        result.getFieldErrors().forEach(
+                fe -> {
+                    String msg = fe.getDefaultMessage();
+                    if (!msg.startsWith(fe.getField())) {
+                        msg = fe.getField() + ' ' + msg;
+                    }
+                    joiner.add(msg);
+                });
+
+        return new ErrorInfo(req.getRequestURL(), errorType,joiner.toString());
     }
 }

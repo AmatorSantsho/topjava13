@@ -7,6 +7,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.util.MealsUtil;
+import ru.javawebinar.topjava.util.exception.ErrorInfo;
+import ru.javawebinar.topjava.util.exception.ErrorType;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
@@ -128,4 +130,21 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(contentJson(MealsUtil.getWithExceeded(Arrays.asList(MEAL6, MEAL5, MEAL4, MEAL3, MEAL2, MEAL1), USER.getCaloriesPerDay())));
     }
+
+    @Test
+    public void testCreateWithInvalidDate() throws Exception {
+        Meal created = new Meal(null,"",0);
+        ResultActions action = mockMvc.perform(post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(created))
+                .with(userHttpBasic(ADMIN)))
+                .andExpect(status().isUnprocessableEntity())
+                .andDo(print())
+                .andExpect(contentJson(new ErrorInfo("http://localhost/rest/profile/meals/", ErrorType.VALIDATION_ERROR,"description size must be between 2 and 120<br>description must not be blank<br>dateTime must not be null<br>calories must be between 10 and 5000")));
+
+
+    }
+
+
+
 }
